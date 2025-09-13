@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameHub - Modern Game Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Taurus, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-top: 40px;
+        }
+
+        .logo {
+            font-size: 4rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 4s ease infinite;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            font-weight: 300;
+        }
+
+        .search-bar {
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-input:focus {
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 20px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-weight: 500;
+        }
+
+        .filter-tab:hover,
+        .filter-tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(15px);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .game-card:hover::before {
+            left: 100%;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .game-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-description {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .game-tags {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            font-size: 0.8rem;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .play-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .play-btn:hover {
+            background: linear-gradient(45deg, #ee5a24, #ff6b6b);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .coming-soon {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            opacity: 0.7;
+        }
+
+        .coming-soon .play-btn {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+        }
+
+        .coming-soon .play-btn:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .stats-section {
+            text-align: center;
+            margin: 60px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4ecdc4;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.1rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 80px;
+            padding: 40px 20px;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+            
+            .games-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .filter-tabs {
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .floating-shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="floating-elements"></div>
+    
+    <div class="container">
+        <header>
+            <h1 class="logo">GameHub</h1>
+            <p class="tagline">Your Ultimate Gaming Destination</p>
+            
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="Search games..." id="searchInput">
+                <span class="search-icon">🔍</span>
+            </div>
+        </header>
+
+        <div class="filter-tabs">
+            <div class="filter-tab active" data-category="all">All Games</div>
+            <div class="filter-tab" data-category="arcade">Arcade</div>
+            <div class="filter-tab" data-category="puzzle">Puzzle</div>
+            <div class="filter-tab" data-category="action">Action</div>
+            <div class="filter-tab" data-category="strategy">Strategy</div>
+        </div>
+
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-number">12+</div>
+                <div class="stat-label">Games Available</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">50K+</div>
+                <div class="stat-label">Games Played</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">1000+</div>
+                <div class="stat-label">Happy Players</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Always Online</div>
+            </div>
+        </div>
+
+        <div class="games-grid" id="gamesGrid">
+            <div class="game-card" data-category="arcade action" data-name="catch falling box">
+                <div class="game-icon" style="background: linear-gradient(45deg, #ff6b6b, #ee5a24);">📦</div>
+                <h3 class="game-title">Catch the Falling Box</h3>
+                <p class="game-description">Test your reflexes in this addictive arcade game! Catch colorful falling boxes with your paddle and achieve the highest score.</p>
+                <div class="game-tags">
+                    <span class="tag">Arcade</span>
+                    <span class="tag">Reflexes</span>
+                    <span class="tag">High Score</span>
+                </div>
+                <div class="game-stats">
+                    <span>⭐ 4.8/5</span>
+                    <span>🎮 12,543 plays</span>
+                </div>
+                <button class="play-btn" onclick="playGame('fallingBox.html')">Play Now</button>
+            </div>
+
+            <div class="game-card" data-category="puzzle" data-name="memory tiles">
+                <div class="game-icon" style="background: linear-gradient(45deg, #4ecdc4, #44a08d);">🧩</div>
+                <h3 class="game-title">Memory Tiles</h3>
+                <p class="game-description">Challenge your memory with this classic tile-matching game. Find pairs of matching tiles before time runs out!</p>
+                <div class="game-tags">
+                    <span class="tag">Memory</span>
+                    <span class="tag">Puzzle</span>
+                    <span class="tag">Brain Training</span>
+                </div>
+                <div class="game-stats">
+                    <span>⭐ 4.6/5</span>
+                    <span>🎮 8,921 plays</span>
+                </div>
+                <button class="play-btn" onclick="playGame('memoryTiles.html')">Play Now</button>
+            </div>
+
+            <div class="game-card" data-category="action" data-name="space shooter">
+                <div class="game-icon" style="background: linear-gradient(45deg, #667eea, #764ba2);">🚀</div>
+                <h3 class="game-title">Space Shooter</h3>
+                <p class="game-description">Defend Earth from alien invaders in this thrilling space shooter. Upgrade your ship and survive waves of enemies!</p>
+                <div class="game-tags">
+                    <span class="tag">Space</span>
+                    <span class="tag">Shooter</span>
+                    <span class="tag">Upgrades</span>
+                </div>
+                <div class="game-stats">
+                    <span>⭐ 4.7/5</span>
+                    <span>🎮 15,687 plays</span>
+                </div>
+                <button class="play-btn" onclick="playGame('spaceShooter.html')">Play Now</button>
+            </div>
+
+            <div class="game-card" data-category="puzzle strategy" data-name="tetris classic">
+                <div class="game-icon" style="background: linear-gradient(45deg, #f093fb, #f5576c);">🎯</div>
+                <h3 class="game-title">Tetris Classic</h3>
+                <p class="game-description">The timeless puzzle game that started it all! Clear lines by arranging falling tetrominoes in this classic version.</p>
+                <div class="game-tags">
+                    <span class="tag">Classic</span>
+                    <span class="tag">Puzzle</span>
+                    <span class="tag">Timeless</span>
+                </div>
+                <div class="game-stats">
+                    <span>⭐ 4.9/5</span>
+                    <span>🎮 25,432 plays</span>
+                </div>
+                <button class="play-btn" onclick="playGame('tetris.html')">Play Now</button>
+            </div>
+
+            <div class="game-card" data-category="arcade" data-name="snake modern">
+                <div class="game-icon" style="background: linear-gradient(45deg, #11998e, #38ef7d);">🐍</div>
+                <h3 class="game-title">Snake Modern</h3>
+                <p class="game-description">A modern twist on the classic Snake game with power-ups, obstacles, and stunning neon graphics!</p>
+                <div class="game-tags">
+                    <span class="tag">Classic</span>
+                    <span class="tag">Neon</span>
+                    <span class="tag">Power-ups</span>
+                </div>
+                <div class="game-stats">
+                    <span>⭐ 4.5/5</span>
+                    <span>🎮 9,876 plays</span>
+                </div>
+                <button class="play-btn" onclick="playGame('snake.html')">Play Now</button>
+            </div>
+
+            <div class="game-card" data-category="strategy" data-name="tower defense">
+                <div class="game-icon" style="background: linear-gradient(45deg, #ffecd2, #fcb69f);">🏰</div>
+                <h3 class="game-title">Tower Defense</h3>
+                <p class="game-description">Build and upgrade towers to defend your base from waves of enemies. Strategic thinking required!</p>
+                <div class="game-tags">
+                    <span class="tag">Strategy</span>
+                    <span class="tag">Defense</span>
+                    <span class="tag">Upgrades</span>
+                </div>
+                <div class="game-stats">
+                    <span>⭐ 4.4/5</span>
+                    <span>🎮 7,543 plays</span>
+                </div>
+                <button class="play-btn" onclick="playGame('towerDefense.html')">Play Now</button>
+            </div>
+
+            <div class="game-card coming-soon" data-category="action" data-name="racing fury">
+                <div class="game-icon" style="background: linear-gradient(45deg, #ff9a9e, #fecfef);">🏎️</div>
+                <h3 class="game-title">Racing Fury</h3>
+                <p class="game-description">High-speed racing action with customizable cars and multiple tracks. Race against AI or friends!</p>
+                <div class="game-tags">
+                    <span class="tag">Racing</span>
+                    <span class="tag">Multiplayer</span>
+                    <span class="tag">Coming Soon</span>
+                </div>
+                <div class="game-stats">
+                    <span>⭐ -.-/5</span>
+                    <span>🎮 Coming Soon</span>
+                </div>
+                <button class="play-btn">Coming Soon</button>
+            </div>
+
+            <div class="game-card coming-soon" data-category="puzzle" data-name="word master">
+                <div class="game-icon" style="background: linear-gradient(45deg, #a8edea, #fed6e3);">📝</div>
+                <h3 class="game-title">Word Master</h3>
+                <p class="game-description">Expand your vocabulary with this challenging word puzzle game. Find hidden words and solve clever puzzles!</p>
+                <div class="game-tags">
+                    <span class="tag">Words</span>
+                    <span class="tag">Education</span>
+                    <span class="tag">Coming Soon</span>
+                </div>
+                <div class="game-stats">
+                    <span>⭐ -.-/5</span>
+                    <span>🎮 Coming Soon</span>
+                </div>
+                <button class="play-btn">Coming Soon</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 GameHub. Made with ❤️ for gamers everywhere.</p>
+        <p>New games added regularly • No downloads required • Play instantly in your browser</p>
+    </footer>
+
+    <script>
+        // Create floating stars
+        function createStars() {
+            const starsContainer = document.querySelector('.stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Create floating geometric shapes
+        function createFloatingShapes() {
+            const container = document.querySelector('.floating-elements');
+            const shapes = ['🔷', '🔶', '⭐', '💎', '🌟'];
+            
+            for (let i = 0; i < 15; i++) {
+                const shape = document.createElement('div');
+                shape.className = 'floating-shape';
+                shape.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+                shape.style.left = Math.random() * 100 + '%';
+                shape.style.fontSize = (Math.random() * 20 + 10) + 'px';
+                shape.style.animationDelay = Math.random() * 20 + 's';
+                shape.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                container.appendChild(shape);
+            }
+        }
+
+        // Game filtering
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const gameCards = document.querySelectorAll('.game-card');
+
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                filterTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                const category = tab.getAttribute('data-category');
+                
+                gameCards.forEach(card => {
+                    if (category === 'all' || card.getAttribute('data-category').includes(category)) {
+                        card.style.display = 'block';
+                        card.style.animation = 'fadeInUp 0.5s ease';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            gameCards.forEach(card => {
+                const gameName = card.getAttribute('data-name').toLowerCase();
+                const gameDescription = card.querySelector('.game-description').textContent.toLowerCase();
+                
+                if (gameName.includes(searchTerm) || gameDescription.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Play game function
+        function playGame(gameFile) {
+            // In a real implementation, you would navigate to the game
+            if (gameFile === 'fallingBox.html') {
+                // For demo purposes, we'll show an alert
+                // In reality, you'd use: window.location.href = gameFile;
+                alert('Opening ' + gameFile + '...\n\nIn a real implementation, this would navigate to your game file.');
+            } else {
+                alert('Game "' + gameFile + '" is not yet implemented.\n\nThis is a demo showing how the portal would work.');
+            }
+        }
+
+        // Add CSS animation for fade in effect
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize
+        createStars();
+        createFloatingShapes();
+
+        // Add smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add particle effect on card hover
+        gameCards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                if (!card.classList.contains('coming-soon')) {
+                    card.style.transform = 'translateY(-10px) scale(1.02)';
+                }
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                if (!card.classList.contains('coming-soon')) {
+                    card.style.transform = 'translateY(0) scale(1)';
+                }
+            });
+        });
+
+        // Update stats with animation
+        function animateStats() {
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers.forEach(stat => {
+                const finalValue = stat.textContent;
+                const isNumeric = !isNaN(parseInt(finalValue));
+                
+                if (isNumeric) {
+                    const target = parseInt(finalValue);
+                    let current = 0;
+                    const increment = target / 50;
+                    
+                    const counter = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(counter);
+                            stat.textContent = finalValue; // Restore original format
+                        } else {
+                            stat.textContent = Math.floor(current) + '+';
+                        }
+                    }, 40);
+                }
+            });
+        }
+
+        // Trigger stats animation when page loads
+        window.addEventListener('load', () => {
+            setTimeout(animateStats, 1000);
+        });
+    </script>
+</body>
+</html>

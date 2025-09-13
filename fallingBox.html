@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Enhanced Catch the Falling Box</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        canvas {
+            display: block;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 15px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+        
+        .ui-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+        
+        .score-section {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .score, .high-score, .lives {
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .controls-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+            color: white;
+            box-shadow: 0 4px 15px rgba(116, 185, 255, 0.4);
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(116, 185, 255, 0.6);
+        }
+        
+        select {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-weight: bold;
+            backdrop-filter: blur(5px);
+        }
+        
+        select option {
+            background: #2d3748;
+            color: white;
+        }
+        
+        .game-over-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .game-over-screen h2 {
+            margin-bottom: 15px;
+            color: #ff6b6b;
+            font-size: 28px;
+        }
+        
+        .instructions {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            border-radius: 50%;
+        }
+        
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(-50px) scale(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="ui-panel">
+            <div class="score-section">
+                <div id="score" class="score">Score: 0</div>
+                <div id="highScore" class="high-score">Best: 0</div>
+                <div id="lives" class="lives">❤️ Lives: 3</div>
+            </div>
+            <div class="controls-section">
+                <select id="difficulty">
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                    <option value="insane">Insane</option>
+                </select>
+                <button id="startBtn" class="btn btn-primary">Start</button>
+                <button id="pauseBtn" class="btn btn-secondary" disabled>Pause</button>
+                <button id="resetBtn" class="btn btn-secondary">Reset</button>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas" width="500" height="700"></canvas>
+        
+        <div class="instructions">
+            Use ← → arrow keys or A/D keys to move the paddle<br>
+            Catch boxes to score points, avoid missing them!
+        </div>
+        
+        <div id="gameOverScreen" class="game-over-screen">
+            <h2>Game Over!</h2>
+            <p id="finalScore">Final Score: 0</p>
+            <p id="newRecord" style="color: gold; display: none;">🎉 NEW HIGH SCORE! 🎉</p>
+            <button id="playAgainBtn" class="btn btn-primary" style="margin-top: 15px;">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game state
+        let gameState = 'stopped'; // stopped, playing, paused, gameOver
+        let animationId = null;
+        
+        // Game objects
+        let paddle = {
+            x: 200,
+            y: 650,
+            width: 120,
+            height: 15,
+            speed: 8,
+            color: '#00ff88'
+        };
+        
+        let boxes = [];
+        let particles = [];
+        let score = 0;
+        let lives = 3;
+        let highScore = parseInt(localStorage.getItem('catchBoxHighScore')) || 0;
+        
+        // Difficulty settings
+        const difficulties = {
+            easy: { boxSpeed: 2, spawnRate: 0.015, maxBoxes: 3 },
+            medium: { boxSpeed: 3.5, spawnRate: 0.02, maxBoxes: 5 },
+            hard: { boxSpeed: 5, spawnRate: 0.025, maxBoxes: 7 },
+            insane: { boxSpeed: 7, spawnRate: 0.035, maxBoxes: 10 }
+        };
+        
+        let currentDifficulty = difficulties.medium;
+        
+        // Input handling
+        const keys = {};
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (gameState === 'playing') {
+                e.preventDefault();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        
+        // UI elements
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const difficultySelect = document.getElementById('difficulty');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        resetBtn.addEventListener('click', resetGame);
+        playAgainBtn.addEventListener('click', startGame);
+        difficultySelect.addEventListener('change', changeDifficulty);
+        
+        // Initialize high score display
+        document.getElementById('highScore').textContent = `Best: ${highScore}`;
+        
+        function changeDifficulty() {
+            currentDifficulty = difficulties[difficultySelect.value];
+            if (gameState === 'stopped') {
+                resetGame();
+            }
+        }
+        
+        function startGame() {
+            if (gameState === 'gameOver') {
+                resetGame();
+            }
+            gameState = 'playing';
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            gameOverScreen.style.display = 'none';
+            
+            if (!animationId) {
+                gameLoop();
+            }
+        }
+        
+        function togglePause() {
+            if (gameState === 'playing') {
+                gameState = 'paused';
+                pauseBtn.textContent = 'Resume';
+            } else if (gameState === 'paused') {
+                gameState = 'playing';
+                pauseBtn.textContent = 'Pause';
+            }
+        }
+        
+        function resetGame() {
+            gameState = 'stopped';
+            score = 0;
+            lives = 3;
+            boxes = [];
+            particles = [];
+            paddle.x = 200;
+            
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            pauseBtn.textContent = 'Pause';
+            gameOverScreen.style.display = 'none';
+            
+            updateUI();
+            draw();
+        }
+        
+        function gameOver() {
+            gameState = 'gameOver';
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            
+            // Check for high score
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('catchBoxHighScore', highScore.toString());
+                document.getElementById('newRecord').style.display = 'block';
+                document.getElementById('highScore').textContent = `Best: ${highScore}`;
+            } else {
+                document.getElementById('newRecord').style.display = 'none';
+            }
+            
+            document.getElementById('finalScore').textContent = `Final Score: ${score}`;
+            gameOverScreen.style.display = 'block';
+        }
+        
+        function createBox() {
+            if (boxes.length < currentDifficulty.maxBoxes && Math.random() < currentDifficulty.spawnRate) {
+                boxes.push({
+                    x: Math.random() * (canvas.width - 30),
+                    y: -30,
+                    size: 25 + Math.random() * 15,
+                    speed: currentDifficulty.boxSpeed + Math.random() * 2,
+                    color: `hsl(${Math.random() * 360}, 70%, 60%)`,
+                    rotation: 0,
+                    rotationSpeed: (Math.random() - 0.5) * 0.2
+                });
+            }
+        }
+        
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 8; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1.0,
+                    decay: 0.02,
+                    size: Math.random() * 6 + 2,
+                    color: color
+                });
+            }
+        }
+        
+        function updatePaddle() {
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                paddle.x -= paddle.speed;
+            }
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                paddle.x += paddle.speed;
+            }
+            
+            // Keep paddle within bounds
+            if (paddle.x < 0) paddle.x = 0;
+            if (paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
+        }
+        
+        function updateBoxes() {
+            for (let i = boxes.length - 1; i >= 0; i--) {
+                const box = boxes[i];
+                box.y += box.speed;
+                box.rotation += box.rotationSpeed;
+                
+                // Check collision with paddle
+                if (box.y + box.size >= paddle.y &&
+                    box.y <= paddle.y + paddle.height &&
+                    box.x + box.size >= paddle.x &&
+                    box.x <= paddle.x + paddle.width) {
+                    
+                    score += Math.ceil(box.size / 5);
+                    createParticles(box.x + box.size/2, box.y + box.size/2, box.color);
+                    boxes.splice(i, 1);
+                    continue;
+                }
+                
+                // Remove box if it goes off screen
+                if (box.y > canvas.height) {
+                    lives--;
+                    createParticles(box.x + box.size/2, canvas.height - 20, '#ff4757');
+                    boxes.splice(i, 1);
+                    
+                    if (lives <= 0) {
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+        }
+        
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life -= particle.decay;
+                particle.vy += 0.2; // gravity
+                
+                if (particle.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+        
+        function update() {
+            if (gameState !== 'playing') return;
+            
+            updatePaddle();
+            createBox();
+            updateBoxes();
+            updateParticles();
+            updateUI();
+        }
+        
+        function updateUI() {
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('lives').textContent = `❤️ Lives: ${lives}`;
+        }
+        
+        function drawPaddle() {
+            const gradient = ctx.createLinearGradient(paddle.x, paddle.y, paddle.x, paddle.y + paddle.height);
+            gradient.addColorStop(0, paddle.color);
+            gradient.addColorStop(1, '#00cc66');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+            
+            // Paddle glow effect
+            ctx.shadowColor = paddle.color;
+            ctx.shadowBlur = 10;
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+            ctx.shadowBlur = 0;
+        }
+        
+        function drawBoxes() {
+            boxes.forEach(box => {
+                ctx.save();
+                ctx.translate(box.x + box.size/2, box.y + box.size/2);
+                ctx.rotate(box.rotation);
+                
+                // Box shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(-box.size/2 + 2, -box.size/2 + 2, box.size, box.size);
+                
+                // Main box
+                const gradient = ctx.createLinearGradient(-box.size/2, -box.size/2, box.size/2, box.size/2);
+                gradient.addColorStop(0, box.color);
+                gradient.addColorStop(1, '#ffffff');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(-box.size/2, -box.size/2, box.size, box.size);
+                
+                // Box highlight
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.fillRect(-box.size/2, -box.size/2, box.size/3, box.size/3);
+                
+                ctx.restore();
+            });
+        }
+        
+        function drawParticles() {
+            particles.forEach(particle => {
+                ctx.save();
+                ctx.globalAlpha = particle.life;
+                ctx.fillStyle = particle.color;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+        
+        function drawBackground() {
+            // Animated background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(0.5, '#16213e');
+            gradient.addColorStop(1, '#0f3460');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add some stars
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            for (let i = 0; i < 50; i++) {
+                const x = (i * 73) % canvas.width;
+                const y = (i * 47) % canvas.height;
+                const size = Math.sin(Date.now() * 0.001 + i) * 0.5 + 1;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawBackground();
+            drawPaddle();
+            drawBoxes();
+            drawParticles();
+            
+            // Draw pause overlay
+            if (gameState === 'paused') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 48px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('PAUSED', canvas.width/2, canvas.height/2);
+                ctx.textAlign = 'left';
+            }
+        }
+        
+        function gameLoop() {
+            update();
+            draw();
+            
+            if (gameState !== 'stopped') {
+                animationId = requestAnimationFrame(gameLoop);
+            } else {
+                animationId = null;
+            }
+        }
+        
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>
