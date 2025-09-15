@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
     <title>Enhanced Catch the Falling Box</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
@@ -19,15 +20,22 @@
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
+            touch-action: none;
         }
         
         .game-container {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 20px;
-            padding: 20px;
+            padding: 15px;
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.2);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            width: 95vw;
+            max-width: 520px;
+            height: 95vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         canvas {
@@ -36,45 +44,52 @@
             border-radius: 15px;
             border: 3px solid rgba(255, 255, 255, 0.3);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            height: auto;
+            flex-grow: 1;
         }
         
         .ui-panel {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            gap: 15px;
+            margin-bottom: 10px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         
         .score-section {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 3px;
+            flex: 1;
         }
         
         .score, .high-score, .lives {
             color: white;
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         
         .controls-section {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         .btn {
-            padding: 10px 20px;
+            padding: 8px 16px;
             border: none;
             border-radius: 25px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            touch-action: manipulation;
         }
         
         .btn-primary {
@@ -83,7 +98,7 @@
             box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
         }
         
-        .btn-primary:hover {
+        .btn-primary:hover, .btn-primary:active {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
         }
@@ -94,19 +109,20 @@
             box-shadow: 0 4px 15px rgba(116, 185, 255, 0.4);
         }
         
-        .btn-secondary:hover {
+        .btn-secondary:hover, .btn-secondary:active {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(116, 185, 255, 0.6);
         }
         
         select {
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 20px;
             border: 2px solid rgba(255, 255, 255, 0.3);
             background: rgba(255, 255, 255, 0.1);
             color: white;
             font-weight: bold;
             backdrop-filter: blur(5px);
+            font-size: 12px;
         }
         
         select option {
@@ -127,19 +143,67 @@
             display: none;
             backdrop-filter: blur(10px);
             border: 2px solid rgba(255, 255, 255, 0.2);
+            width: 90%;
+            max-width: 400px;
         }
         
         .game-over-screen h2 {
             margin-bottom: 15px;
             color: #ff6b6b;
-            font-size: 28px;
+            font-size: 24px;
         }
         
         .instructions {
             color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
+            font-size: 12px;
             text-align: center;
-            margin-top: 15px;
+            margin-top: 10px;
+            padding: 0 10px;
+        }
+        
+        .touch-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            gap: 10px;
+        }
+        
+        .touch-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            color: white;
+            font-size: 18px;
+            padding: 15px;
+            min-width: 60px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+            transition: all 0.2s ease;
+        }
+        
+        .touch-btn:active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(0.95);
+        }
+        
+        .touch-area {
+            flex: 1;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            touch-action: manipulation;
         }
         
         .particle {
@@ -152,6 +216,55 @@
             to {
                 opacity: 0;
                 transform: translateY(-50px) scale(0);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .ui-panel {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .controls-section {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .score, .high-score, .lives {
+                font-size: 12px;
+            }
+            
+            .btn {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+            
+            select {
+                font-size: 11px;
+            }
+        }
+        
+        @media (orientation: landscape) and (max-height: 600px) {
+            .game-container {
+                padding: 10px;
+            }
+            
+            .ui-panel {
+                margin-bottom: 5px;
+            }
+            
+            .touch-controls {
+                margin-top: 5px;
+            }
+            
+            .touch-btn, .touch-area {
+                height: 40px;
+                padding: 10px;
+            }
+            
+            .instructions {
+                font-size: 10px;
+                margin-top: 5px;
             }
         }
     </style>
@@ -179,9 +292,15 @@
         
         <canvas id="gameCanvas" width="500" height="700"></canvas>
         
+        <div class="touch-controls">
+            <div id="leftBtn" class="touch-btn">←</div>
+            <div class="touch-area">Swipe or touch to move paddle</div>
+            <div id="rightBtn" class="touch-btn">→</div>
+        </div>
+        
         <div class="instructions">
-            Use ← → arrow keys or A/D keys to move the paddle<br>
-            Catch boxes to score points, avoid missing them!
+            Desktop: Use ← → arrow keys or A/D keys<br>
+            Mobile: Touch buttons, swipe, or drag to move paddle
         </div>
         
         <div id="gameOverScreen" class="game-over-screen">
@@ -195,6 +314,39 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        
+        // Make canvas responsive
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const containerRect = container.getBoundingClientRect();
+            const maxWidth = containerRect.width - 30; // Account for padding
+            const maxHeight = window.innerHeight * 0.6; // Max 60% of viewport height
+            
+            const aspectRatio = 500 / 700; // Original aspect ratio
+            let canvasWidth = Math.min(maxWidth, 500);
+            let canvasHeight = canvasWidth / aspectRatio;
+            
+            if (canvasHeight > maxHeight) {
+                canvasHeight = maxHeight;
+                canvasWidth = canvasHeight * aspectRatio;
+            }
+            
+            canvas.style.width = canvasWidth + 'px';
+            canvas.style.height = canvasHeight + 'px';
+            
+            // Update canvas scale for touch calculations
+            canvasScale = {
+                x: 500 / canvasWidth,
+                y: 700 / canvasHeight
+            };
+        }
+        
+        let canvasScale = { x: 1, y: 1 };
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resizeCanvas, 100);
+        });
         
         // Game state
         let gameState = 'stopped'; // stopped, playing, paused, gameOver
@@ -226,7 +378,7 @@
         
         let currentDifficulty = difficulties.medium;
         
-        // Input handling
+        // Input handling - Keyboard
         const keys = {};
         document.addEventListener('keydown', (e) => {
             keys[e.key] = true;
@@ -237,6 +389,92 @@
         
         document.addEventListener('keyup', (e) => {
             keys[e.key] = false;
+        });
+        
+        // Touch input handling
+        let touchStartX = null;
+        let touchCurrentX = null;
+        let isLeftPressed = false;
+        let isRightPressed = false;
+        let isDragging = false;
+        
+        // Touch button controls
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isLeftPressed = true;
+        });
+        
+        leftBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isLeftPressed = false;
+        });
+        
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isRightPressed = true;
+        });
+        
+        rightBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isRightPressed = false;
+        });
+        
+        // Canvas touch controls for swiping and dragging
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            touchStartX = (touch.clientX - rect.left) * canvasScale.x;
+            touchCurrentX = touchStartX;
+            isDragging = true;
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!isDragging) return;
+            
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            touchCurrentX = (touch.clientX - rect.left) * canvasScale.x;
+            
+            if (gameState === 'playing') {
+                // Direct paddle positioning based on touch
+                const paddleCenterX = touchCurrentX - paddle.width / 2;
+                paddle.x = Math.max(0, Math.min(500 - paddle.width, paddleCenterX));
+            }
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (!isDragging) return;
+            
+            const swipeDistance = touchCurrentX - touchStartX;
+            const minSwipeDistance = 30;
+            
+            // Handle swipe gestures
+            if (Math.abs(swipeDistance) > minSwipeDistance) {
+                if (swipeDistance > 0) {
+                    // Swipe right
+                    isRightPressed = true;
+                    setTimeout(() => { isRightPressed = false; }, 200);
+                } else {
+                    // Swipe left
+                    isLeftPressed = true;
+                    setTimeout(() => { isLeftPressed = false; }, 200);
+                }
+            }
+            
+            isDragging = false;
+            touchStartX = null;
+            touchCurrentX = null;
+        });
+        
+        // Prevent context menu on long press
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
         });
         
         // UI elements
@@ -354,11 +592,20 @@
         }
         
         function updatePaddle() {
+            // Keyboard controls
             if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
                 paddle.x -= paddle.speed;
             }
             if (keys['ArrowRight'] || keys['d'] || keys['D']) {
                 paddle.x += paddle.speed;
+            }
+            
+            // Touch button controls
+            if (isLeftPressed) {
+                paddle.x -= paddle.speed * 1.2; // Slightly faster for touch
+            }
+            if (isRightPressed) {
+                paddle.x += paddle.speed * 1.2;
             }
             
             // Keep paddle within bounds
